@@ -1,25 +1,52 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+import { useEffect, useState } from "react";
+
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:3001")
+
+
 
 function App() {
+
+  const [input, setInput] = useState("")
+  const [message, setMessage] = useState([])
+
+  useEffect(() => {
+    socket.on("recieve message", (msg) => {
+      setMessage((preMessage) => [...preMessage, msg])
+      console.log(msg);
+    })
+    return () => {
+      socket.off("received message")
+    }
+  }, [])
+
+  const sendMessage = (e) => {
+    e.preventDefault()
+    setMessage((preMessage) => [...preMessage, input])
+    socket.emit("send message", input)
+    setInput("")
+    
+  }
+  
+  
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <form action="" onSubmit={sendMessage}>
+        <input value={input} onChange={(e) => setInput(e.target.value)} type="text" />
+        <button>send</button>
+        <br />
+        <input onChange={(e) => setInput(e.target.value)} type="text" />
+        <button> Room</button>
+      </form>
+      {message.map((msg, index) => {
+        return (
+          <p  key={index}><span>{msg}</span> <br /></p>
+        )
+      })}
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
